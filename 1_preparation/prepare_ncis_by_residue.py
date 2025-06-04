@@ -1,5 +1,6 @@
 import configparser
 import mdtraj as md
+import numpy as np
 import os
 import pandas as pd
 import re
@@ -44,7 +45,28 @@ traj = md.load(trajectory_file, top = PDB_top, standard_names=False)
 
 # We ensure all molecules are imaged whole because the NCIplot cannot take into account the PBCs to calculate the promolecular densities
 prot_indexes = PDB_top.select('protein')
-traj = traj.image_molecules(anchor_molecules=[[traj.topology.atom(i) for i in prot_indexes]] , make_whole = True, inplace=True) 
+if waters_in_traj == True:
+    # If we are interested in interactions between the protein and waters we first make all the molecules whole before centering
+    traj.make_molecules_whole()
+    prot_indixes = traj.topology.select('protein')
+
+    # Compute the protein COM for every frame
+    masses = np.array([atom.element.mass for atom in traj.topology.atoms])
+    protein_masses = masses[prot_indixes]
+    com = np.sum(traj.xyz[:, prot_indixes, :] * protein_masses[None, :, None], axis=1) / np.sum(protein_masses)
+
+    # Compute box center in each frame (assuming orthorhombic box)
+    box_center = 0.5 * traj.unitcell_lengths  # shape: (n_frames, 3)
+
+    # Move everything so the protein is centered 
+    traj.xyz = traj.xyz - com[:, None, :] + box_center[:, None, :]
+
+    # Reimage all other molecules so they are placed near the protein
+    traj.image_molecules(anchor_molecules='protein', inplace=True)
+else:
+    # If not, just making the molecule whole is enough 
+    traj = traj.image_molecules(anchor_molecules=[[traj.topology.atom(i) for i in prot_indexes]] , make_whole = True, inplace=True) 
+
 
 # We generate a dictionary for residue and water definitions to select them and extract their xyzs
 n_residues = traj.atom_slice(prot_indexes).n_residues
