@@ -43,3 +43,7 @@ They also state how separated are the sampled frames and the start and end point
 * [David De Sancho (@daviddesancho)](https://github.com/daviddesancho)
 * [Julia Contreras García (@juliacontrerasgarcia)](https://github.com/juliacontrerasgarcia)
 * Xabier López
+
+## Reference
+* Urriolabeitia A, Contreras-García J, De Sancho D, López X. "Resolving molecular interactions in protein folding trajectories with NCIPLOT". *ChemRxiv*. 2025; doi:[10.26434/chemrxiv-2025-dbng4](https://doi.org/10.26434/chemrxiv-2025-dbng4)
+
