@@ -69,7 +69,7 @@ for ensemble in ensemble_list:
             data.write(f"topology_file = {header}_fr{frame}.pdb\n")
             data.write(f"trajectory_file = {header}_ensemble_{ensemble}.xtc\n")
             data.write(f"Start Frame = 0\n")
-            data.write(f"End Frame = {n_snapshots}\n")
+            data.write(f"End Frame = {n_snapshots-1}\n")
             data.write(f"Sampling step= 1\n")
             data.write(f"waters_in_traj = {waters_in_traj}\n")
 print('if correctly used on dcd files, residues will appear duplicated. Use pymol to transform to pdbs and change the relevant_data file accordingly')
