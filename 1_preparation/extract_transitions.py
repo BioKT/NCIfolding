@@ -133,25 +133,32 @@ for transition in transitions:
     end_idx = get_file_index(transition['Last Trajectory File'])
     end_frame_in_file = transition['End Frame in File']
 
-    # we separatly load all the components on the transition to save it as only one in its respective directory 
-    transition_traj = None
-    for idx in range(start_idx, end_idx + 1): # in how many dcd files is the transition spread?
-        traj_file_name = start_traj_file.replace(f"{start_idx:03}", f"{idx:03}")
-        individual_traj = md.load(traj_file_name, top=topology_file)
+    # in case there is only one trajectory file the process is simple
+    if transition['First Trajectory File'] == transition['Last Trajectory File']:
+        # Case: transition fully inside one file
+        traj = md.load(start_traj_file, top=topology_file)
+        transition_traj = traj[start_frame_in_file:end_frame_in_file + 1]
 
-        if idx == start_idx and idx == end_idx:
-            traj_to_save = individual_traj[start_frame_in_file:end_frame_in_file + 1]
-        elif idx == start_idx:
-            traj_to_save = individual_traj[start_frame_in_file:]
-        elif idx == end_idx:
-            traj_to_save = individual_traj[:end_frame_in_file + 1]
-        else:
-            traj_to_save = individual_traj
+    else:
+        # we separatly load all the components on the transition to save it as only one in its respective directory 
+        transition_traj = None
+        for idx in range(start_idx, end_idx + 1): # in how many dcd files is the transition spread?
+            traj_file_name = start_traj_file.replace(f"{start_idx:03}", f"{idx:03}")
+            individual_traj = md.load(traj_file_name, top=topology_file)
 
-        if transition_traj is None:
-            transition_traj = traj_to_save
-        else:
-            transition_traj = md.join([transition_traj, traj_to_save])
+            if idx == start_idx and idx == end_idx:
+                traj_to_save = individual_traj[start_frame_in_file:end_frame_in_file + 1]
+            elif idx == start_idx:
+                traj_to_save = individual_traj[start_frame_in_file:]
+            elif idx == end_idx:
+                traj_to_save = individual_traj[:end_frame_in_file + 1]
+            else:
+                traj_to_save = individual_traj
+
+            if transition_traj is None:
+                transition_traj = traj_to_save
+            else:
+                transition_traj = md.join([transition_traj, traj_to_save])
 
     # save trajectory and topology for separate studies of each transition
     transition_traj.save_xtc(output_path)
