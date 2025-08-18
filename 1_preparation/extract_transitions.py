@@ -76,6 +76,7 @@ for index, row in df.iterrows():
             except OSError:
                 print(f"No previous file found for {start_traj_file}. Using start frame as-is.")
                 start_frame_in_file = 0
+                start_frame = extra_frames * sampling_step
 
             try:
                 # Then we adjust the end frame 
