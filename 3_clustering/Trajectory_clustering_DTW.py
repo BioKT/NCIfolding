@@ -56,7 +56,7 @@ waters_in_traj = config.getboolean('Settings', 'waters_in_traj', fallback=False)
 # Prepare multiple directories for outputs 
 output_dir = os.path.join(os.getcwd(), 'Clustering_results')
 os.makedirs(output_dir, exist_ok=True)
-output_dir = os.path.join(output_dir, f'Trajectory_clustering_agglomerative_DTW_bounding_window_{str(bounding_window).replace('.', 'p')}')
+output_dir = os.path.join(output_dir, f"Trajectory_clustering_agglomerative_DTW_bounding_window_{str(bounding_window).replace('.', 'p')}")
 os.makedirs(output_dir, exist_ok=True)
 tsne_pca_output_dir = os.path.join(output_dir, "tSNE_and_PCA_analysis")
 os.makedirs(tsne_pca_output_dir, exist_ok=True)
@@ -134,7 +134,7 @@ elbow_inertia = []
 silhouette_scores = []
 davies_bouldin_scores = []
 # Clustering and plotting
-for n_clusters in range(2, 11):
+for n_clusters in n_clusters_range:
     clustering = AgglomerativeClustering(n_clusters=n_clusters, metric="precomputed", linkage="average")
     cluster_labels = clustering.fit_predict(distance_matrix)
     
@@ -174,7 +174,7 @@ for n_clusters in range(2, 11):
         
         # Add traj indices as text annotation in the first column
         cluster_text = f"trajs: {', '.join(map(str, cluster_indices))}"
-        axes[cluster_id, 0].text(0.02, 0.95, cluster_text, transform=axes[cluster_id, 0].transAxes, fontsize=10, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.6))
+        axes[0,cluster_id].text(0.02, 0.95, cluster_text, transform=axes[0, cluster_id].transAxes, fontsize=10, verticalalignment='top', bbox=dict(facecolor='white', alpha=0.6))
     
 
     plt.suptitle(f"Clustering DTW using bounding_window = {str(bounding_window)} with {n_clusters} Clusters", fontsize=16, fontweight="bold")
