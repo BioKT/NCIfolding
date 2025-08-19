@@ -104,7 +104,7 @@ for replica_dir in replica_directories:
 
     # Extract every sampled frame corresponding Q value and add to the list one after the other
     cleaned_replica_dir = os.path.basename(replica_dir) 
-    q_values += q_df[(q_df['Frame'].isin(sampled_frames)) & (q_df['Traj_File'].str[:6] == cleaned_replica_dir[:6])]['D.E.Shaw_Q'].to_list()
+    q_values += q_df[(q_df['Frame'].isin(sampled_frames))]['D.E.Shaw_Q'].to_list() #& (q_df['Traj_File'].str[:6] == cleaned_replica_dir[:6])
 
     # After extracting the Q_values from the sampled frames we also take the NCI densities from the csv files
     for filename in os.listdir(replica_dir_path):
@@ -167,6 +167,8 @@ tab10_colors = list(cm.tab10.colors)
 
 # Store results for elbow and silhouette methods
 elbow_inertia, silhouette_scores, davies_bouldin_scores = [], [], []
+cluster_labels_dict = {}
+
 
 # Iterate over clustering values to both generate the clusters as well as indexes to check its validity
 for n_cluster in range(2, n_clusters + 1):
@@ -210,6 +212,7 @@ for n_cluster in range(2, n_clusters + 1):
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'Agglomerative_tsMSM_separate_event_clustering_n{n_cluster}_cost{str(msm_penalty).replace(".", "p")}_window{str(msm_window).replace(".", "p")}.png'), dpi=300)
     plt.close(fig)
+    cluster_labels_dict[n_cluster] = sorted_cluster_labels
 
     # Then plot the data for each cluster with time and compare it to Q 
     time_series_output_dir = os.path.join(output_dir, f'TimeSeries_Plots_n{n_cluster}_agglomerative_ts_pairwise_separate_event')
@@ -282,8 +285,10 @@ for n_cluster in range(2, n_clusters + 1):
     inertia = 0
     for cluster_id in range(n_clusters):
         cluster_indices = np.where(cluster_labels == cluster_id)[0]
+        if len(cluster_indices) <= 1:
+            continue  # no aporta nada al cálculo de inertia
         cluster_distances = distance_matrix[np.ix_(cluster_indices, cluster_indices)]
-        inertia += np.sum(cluster_distances) / (2 * len(cluster_indices))  # Average within-cluster distance
+        inertia += np.sum(cluster_distances) / (2 * len(cluster_indices))
     elbow_inertia.append(inertia)
     # Compute Silhouette Score (higher is better)
     if n_clusters > 1:  # Silhouette is only valid for n > 1
@@ -303,7 +308,7 @@ plt.ylabel("Sum of Within-Cluster Distances (Inertia)")
 plt.title("Elbow Method for Optimal Clusters")
 plt.xticks(n_clusters_range)
 plt.grid()
-plt.savefig(os.path.join(output_dir, f"MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace('.', 'p')}_elbow_method.png"), dpi=300, bbox_inches="tight")
+plt.savefig(os.path.join(output_dir, f'MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace(".", "p")}_elbow_method.png'), dpi=300, bbox_inches="tight")
 
 # Plot Silhouette Scores
 plt.figure(figsize=(8, 4))
@@ -313,7 +318,7 @@ plt.ylabel("Silhouette Score")
 plt.title("Silhouette Analysis for Optimal Clusters")
 plt.xticks(n_clusters_range)
 plt.grid()
-plt.savefig(os.path.join(output_dir, f"MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace('.', 'p')}_silhouette_analysis.png"), dpi=300, bbox_inches="tight")
+plt.savefig(os.path.join(output_dir, f'MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace(".", "p")}_silhouette_analysis.png'), dpi=300, bbox_inches="tight")
 
 # Plot Davies-Bouldin index
 plt.figure(figsize=(8, 4))
@@ -323,7 +328,7 @@ plt.ylabel("Davies-Bouldin Index")
 plt.title("Davies-Bouldin Index for Clustering Quality")
 plt.xticks(n_clusters_range)
 plt.grid()
-plt.savefig(os.path.join(output_dir, f"MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace('.', 'p')}_davies_bouldin_analysis.png"), dpi=300, bbox_inches="tight")
+plt.savefig(os.path.join(output_dir, f'MSM_cost{str(msm_penalty).replace(".", "p")}_window_{str(msm_window).replace(".", "p")}_davies_bouldin_analysis.png'), dpi=300, bbox_inches="tight")
 
 # Compute PCA and tSNE
 pca = PCA(n_components=2)
@@ -333,12 +338,7 @@ tsne_proj = tsne.fit_transform(distance_matrix)
 
 # Loop over clustering results
 for n_clusters in n_clusters_range:
-    clustering = AgglomerativeClustering(n_clusters=n_clusters, metric="precomputed", linkage="average")
-    cluster_labels = clustering.fit_predict(distance_matrix)
-
-    # Compute t-SNE projection (init must be 'random' for precomputed distances)
-    tsne = TSNE(n_components=2, metric="precomputed", init="random", perplexity=5, random_state=42)
-    tsne_proj = tsne.fit_transform(distance_matrix)
+    cluster_labels = cluster_labels_dict[n_clusters]
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     # Plot PCA
