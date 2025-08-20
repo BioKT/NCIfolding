@@ -10,7 +10,8 @@ plt.rcParams['font.family'] = 'Arial'
 plt.rcParams['mathtext.fontset'] = 'dejavusans'
 
 # If we are interested in only getting the data for one case then use target_filename
-target_filename = "NTL9-1-EE_unfolding_event_1_04ILE_vs_37ILE_densities.csv"
+#target_filename = "NTL9-1-EE_unfolding_event_1_04ILE_vs_37ILE_densities.csv"
+target_filename = None
 
 # Extract settings from ./relevant_data.txt
 config = configparser.ConfigParser()
