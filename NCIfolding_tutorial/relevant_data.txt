@@ -1,0 +1,6 @@
+[Settings]
+header = cln025
+trajectory_directory = .
+topology_file = first_frame.pdb
+native_state_file = charmm22star_chignolin.pdb
+waters_in_traj = False
